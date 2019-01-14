@@ -16,10 +16,11 @@ limitations under the License.
 
 #include <cinttypes>
 #include <iostream>
-#include <bits/stdc++.h>
+#include "bits/stdc++.h"
 #include <Eigen/Dense>
 #include "SimplexSolver.h"
 #include "exception.h"
+#include "../BranchBound/branch_bound.h"
 
 #define pb push_back
 #define eps 1e-9
