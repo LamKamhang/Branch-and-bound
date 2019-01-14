@@ -1,0 +1,18 @@
+  No feasible solution found.
+  Extended solver steps:                               0
+  Total solver iterations:                             0
+  Elapsed runtime seconds:                          6.88
+
+  Model Class:                                      PILP
+
+  Total variables:                      6
+  Nonlinear variables:                  0
+  Integer variables:                    6
+
+  Total constraints:                    6
+  Nonlinear constraints:                0
+
+  Total nonzeros:                      13
+  Nonlinear nonzeros:                   0
+
+
