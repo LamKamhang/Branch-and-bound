@@ -72,10 +72,9 @@ private:
 	std::vector<Variable> function;
 
 	//static std::string Trim(const std::string &s);
-	static void Opposite(std::vector<Variable> &variables);
 	static std::vector<std::string> Split(const std::string & input, char delim);
 	static std::string Join(const std::vector<std::string> & input);
-	static std::vector<Variable> ParseVariables(const std::vector<std::string> & tokens);
+	static std::vector<Variable> ParseVariables(const std::vector<std::string> & tokens, bool opposite = false);
 	static size_t ParseVariable(std::string variable);
 	static Condition ParseExpression(const std::vector<std::string> & tokens);
 public:
@@ -83,12 +82,6 @@ public:
 	std::string Print();
 };
 
-void Data::Opposite(std::vector<Variable> &variables)
-{
-	for (auto var : variables){
-		var.coefficient *= -1;
-	}
-}
 //std::string Data::Trim(const std::string &s)
 //{
 //	auto wsfront = std::find_if_not(s.begin(), s.end(), [](int c) {return std::isspace(c); });
@@ -119,7 +112,7 @@ std::string Data::Join(const std::vector<std::string> & input)
 }
 
 
-std::vector<Variable> Data::ParseVariables(const std::vector<std::string> & tokens)
+std::vector<Variable> Data::ParseVariables(const std::vector<std::string> & tokens, bool opposite)
 {
 	using std::vector;
 	using std::string;
@@ -142,6 +135,11 @@ std::vector<Variable> Data::ParseVariables(const std::vector<std::string> & toke
 				sign = -1;
 			} else {
 				parseFail = true;
+			}
+
+			// check whether opposite
+			if (opposite){
+				sign *= -1;
 			}
 
 			// coefficient
@@ -278,8 +276,7 @@ void Data::Parse(const std::string & input_)
 			} else if (tokens[0].size() >= 4 && tokens[0].substr(0, 4) == "max:") {
 				function = Data::ParseVariables(vector<string>(tokens.begin() + 1, tokens.end()));
 			} else if (tokens[0].size() >= 4 && tokens[0].substr(0, 4) == "min:") {
-				function = Data::ParseVariables(vector<string>(tokens.begin() + 1, tokens.end()));
-				Data::Opposite(function);
+				function = Data::ParseVariables(vector<string>(tokens.begin() + 1, tokens.end()), true);
 			} else {
 				if (tokens[0].back() == ':') {
 					tokens.erase(tokens.begin());
