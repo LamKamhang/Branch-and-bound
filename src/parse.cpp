@@ -9,6 +9,7 @@
 #include <map>
 #include <cmath>
 
+
 class ParseException : public std::exception {
 protected:
 	std::string msg_;
@@ -68,8 +69,10 @@ private:
 	std::vector<Condition> conditions;
 	std::vector< std::pair<size_t, Bounds> > bounds;
 	std::vector<size_t> indices;
+	std::vector<Variable> function;
 
 	//static std::string Trim(const std::string &s);
+	static void Opposite(std::vector<Variable> &variables);
 	static std::vector<std::string> Split(const std::string & input, char delim);
 	static std::string Join(const std::vector<std::string> & input);
 	static std::vector<Variable> ParseVariables(const std::vector<std::string> & tokens);
@@ -80,7 +83,12 @@ public:
 	std::string Print();
 };
 
-
+void Data::Opposite(std::vector<Variable> &variables)
+{
+	for (auto var : variables){
+		var.coefficient *= -1;
+	}
+}
 //std::string Data::Trim(const std::string &s)
 //{
 //	auto wsfront = std::find_if_not(s.begin(), s.end(), [](int c) {return std::isspace(c); });
@@ -268,9 +276,10 @@ void Data::Parse(const std::string & input_)
 					this->indices.push_back(index);
 				}
 			} else if (tokens[0].size() >= 4 && tokens[0].substr(0, 4) == "max:") {
-				vector<Variable> variables = Data::ParseVariables(vector<string>(tokens.begin() + 1, tokens.end()));
+				function = Data::ParseVariables(vector<string>(tokens.begin() + 1, tokens.end()));
 			} else if (tokens[0].size() >= 4 && tokens[0].substr(0, 4) == "min:") {
-				vector<Variable> variables = Data::ParseVariables(vector<string>(tokens.begin() + 1, tokens.end()));
+				function = Data::ParseVariables(vector<string>(tokens.begin() + 1, tokens.end()));
+				Data::Opposite(function);
 			} else {
 				if (tokens[0].back() == ':') {
 					tokens.erase(tokens.begin());
@@ -400,6 +409,11 @@ std::string Data::Print()
 	}
 
 	output << indexSize << std::endl;
+
+	for (const auto & var : function){
+		output << var.coefficient << " " << var.index << " ";
+	}
+	output << std::endl;
 	
 	output << this->bounds.size() << std::endl;
 	for (const auto p : this->bounds) {
