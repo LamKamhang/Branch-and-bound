@@ -1,0 +1,47 @@
+﻿\documentclass[12pt,a4paper]{report}
+
+\usepackage[top=1in, bottom=1in, left=1.25in, right=1.25in]{geometry}
+\usepackage{subfigure}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xeCJK}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{tikz}
+\usepackage{fancyhdr}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{makecell}
+\usepackage{titlesec}
+
+\setCJKmainfont{Source Han Serif}
+\setmonofont{Ubuntu Mono}
+
+\newcommand{\sectionbreak}{\clearpage}
+\setlength{\parskip}{12pt}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstset{
+	language=C++,
+	numbers=left,
+	breaklines=true,
+	basicstyle=\scriptsize\ttfamily,
+	commentstyle=\color{mygreen},
+	keywordstyle=\color{blue},
+	numberstyle=\color{mygray},
+	rulecolor=\color{black},
+	stringstyle=\color{mymauve}
+}
+
+\input{title}
+
+\begin{document}
+	\maketitle
+	\tableofcontents
+    \input{content}
+\end{document}

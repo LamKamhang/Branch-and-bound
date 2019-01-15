@@ -1,0 +1,129 @@
+\section{分枝定界法}
+\begin{lstlisting}[language=python]
+	class IPsolver:
+    def __init__(self, c, Aub, bub, Aeq, beq, bounds, tol=1.0E-8):
+        self.c = np.array(c)
+        self.Aub = np.array(Aub) if Aub else None
+        self.bub = np.array(bub) if bub else None
+        self.Aeq = np.array(Aeq) if Aeq else None
+        self.beq = np.array(beq) if beq else None
+        self.bounds = np.array(bounds) if bounds else None
+        self.tol = tol
+
+        self.solution = np.zeros(self.c.shape)
+        self.optimum = -np.inf
+        self.isFoundSolution = False
+
+        self.cur_sol = np.zeros(self.c.shape)
+        self.cur_opt = -np.inf
+
+        self.max_branch_num = 5
+        self.cur_branch_num = 0
+
+\end{lstlisting}
+
+
+定义如上所示整数规划求解器类，以c, Aub, bub, Aeq, beq, bounds和tol为输入。默认求解最大化问
+题，其中c表示目标函数中各变量的系数；Aub为小于等于约束$Aub*x<=bub$中的Aub矩阵，bub为其中右边的系数；Aeq为等于约束$Aeq*x=beq$中的Aeq矩阵，beq为其中右边的系数；bounds为各变量的上下界约束；tol为整数容忍度。
+初始化中设置最大分支数为max\_branch\_num，并初始化当前的解cur\_sol和目标函数值cur\_opt。
+
+\begin{lstlisting}[language=python]
+    def core_solve(self, c, Aub, bub, Aeq, beq, bounds):
+        sol, opt = None, None
+        res = linprog(-c, A_ub=Aub, b_ub=bub, A_eq=Aeq, b_eq=beq, bounds=bounds)
+\end{lstlisting}
+
+核心求解函数，输入与类构造函数相同，首先将问题松弛为一般的线性规划问题，调用线性规划求解器求解。注意，这里的线性规划求解器是求解最小化问题的，故将c反号。
+
+\begin{lstlisting}[language=python]
+	if res.success:
+		opt = -res.fun
+		sol = res.x
+		self.update_opt(sol, opt)
+\end{lstlisting}
+
+若该线性规划求解成功，则拿解和值更新当前的解和目标函数值；否则不用分支，直接退出。
+
+\begin{lstlisting}[language=python]
+	if self.needBranch(sol, opt) and self.cur_branch_num < self.max_branch_num:
+		index = self.getFirstNotInt(sol)
+		to_round = sol[index]
+		len_c = len(self.c)
+\end{lstlisting}
+
+进一步判断是否需要分支（该函数将在之后详细讲解），并判断branch次数是否超过阈值，若需要分支则获得第一个非整数的变量的索引，和解中的对应变量的值，并继续进行下述操作；否则，直接退出。
+
+\begin{lstlisting}[language=python]
+	Con1 = np.zeros((len_c, ))
+	Con2 = np.zeros((len_c, ))
+	Con1[index] = -1.0
+	Con2[index] = 1.0
+	if Aub is None and bub is None:
+		A1 = Con1.reshape(1, len_c)
+		A2 = Con2.reshape(1, len_c)
+		B1 = np.array([-math.ceil(to_round)])
+		B2 = np.array([math.floor(to_round)])
+	else:
+		A1 = np.vstack([Aub, Con1])
+		A2 = np.vstack([Aub, Con2])
+		B1 = np.hstack([bub, -math.ceil(to_round)])
+		B2 = np.hstack([bub, math.floor(to_round)])
+\end{lstlisting}
+
+上述代码段将当前非整数索引进行划分，即分别添加x\_index<=-math.ceil(to\_round)和x\_index>=math.floor(to\_round)的约束到原来的小于等于约束中，变成两个不同的分支。
+
+\begin{lstlisting}[language=python]
+	self.cur_branch_num += 1
+	self.core_solve(c, A1, B1, Aeq, beq, bounds) # right branch
+	self.core_solve(c, A2, B2, Aeq, beq, bounds) # left branch
+\end{lstlisting}
+
+将分好支的变量继续调用核心求解器函数，并将分支次数加1。因为每次求解时，我们都保存了整数解，故不需要多余的代码来处理之后的结果。当各个分支运行完毕之后求解结束。
+
+\begin{lstlisting}[language=python]
+    def allInteger(self, sol):
+        tmp = np.array([abs(x-np.round(x)) for x in list(sol)])
+        return all(tmp <= self.tol)
+\end{lstlisting}
+
+该函数判断解是否都是整数。
+
+\begin{lstlisting}[language=python]
+    def getFirstNotInt(self, sol):
+        tmp = np.array([abs(x-np.round(x)) for x in list(sol)])
+        l = tmp > self.tol
+        for i in range(len(l)):
+            if l[i]: return i
+        return -1
+\end{lstlisting}
+该函数取得解中第一个非整数的索引号。
+
+\begin{lstlisting}[language=python]
+    def needBranch(self, sol, opt):
+        if self.allInteger(sol): return False
+        elif opt <= self.cur_opt: return False
+        return True
+\end{lstlisting}
+
+该函数判断当前解和值的情况下，是否需要分支。并非都是整数或者，该解的目标函数值比当前函数值要大，则需要分支。
+
+\begin{lstlisting}[language=python]
+    def update_opt(self, sol, opt):
+        if self.allInteger(sol) and self.cur_opt<opt:
+            self.cur_opt = opt
+            self.cur_sol = sol.copy()
+            self.isFoundSolution = True
+\end{lstlisting}
+该函数用于更新当前解和目标函数值，只有在解都是整数，并且当前函数值比该解的函数值小时，才更新。
+
+\begin{lstlisting}[language=python]
+    def solve(self):
+        self.core_solve(self.c, self.Aub, self.bub, self.Aeq, self.beq, self.bounds)
+        if self.isFoundSolution:
+            self.solution = np.array([int(np.round(x)) for x in list(self.cur_sol)])
+            self.optimum  = self.cur_opt
+            return True
+        else:
+            return False
+\end{lstlisting}
+该函数是对核心求解器函数的一个封装，用于将构造求解器类的各个参数，作为输入传入core\_solve函数中求解，最后并将结果保存到最后结果self.solution和self.optimum中。

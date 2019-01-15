@@ -1,0 +1,185 @@
+\relax 
+\@writefile{toc}{\contentsline {chapter}{\numberline {1}功能介绍}{4}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{toc}{\contentsline {section}{\numberline {1.1}内存管理}{4}}
+\@writefile{lot}{\contentsline {table}{\numberline {1.1}{\ignorespaces 用户指令}}{4}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.2}进程管理}{5}}
+\@writefile{lot}{\contentsline {table}{\numberline {1.2}{\ignorespaces 进程模块提供的用户指令}}{5}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.3}文件系统}{6}}
+\@writefile{lot}{\contentsline {table}{\numberline {1.3}{\ignorespaces 提供的用户指令}}{6}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {2}详细设计}{7}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}内存管理}{7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1.1}物理内存管理}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{概述}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{Bootmem、Buddy}{7}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.1}Buddy系统核心数据结构}{8}}
+\@writefile{toc}{\contentsline {subsubsection}{Slab}{8}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.2}Slab系统核心结构}{8}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.3}对外接口}{8}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces kmalloc/kfree分配逻辑}}{9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1.2}虚拟内存设计}{9}}
+\@writefile{toc}{\contentsline {subsubsection}{\texttt  {mm\_struct}}{9}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.4}\texttt  {mm\_struct}}{9}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.5}\texttt  {vma\_struct}}{10}}
+\@writefile{toc}{\contentsline {subsubsection}{TLB}{10}}
+\@writefile{toc}{\contentsline {subsubsection}{malloc/free}{10}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.6}malloc/free接口}{10}}
+\@writefile{toc}{\contentsline {subsubsection}{malloc/free导致的内存泄漏}{11}}
+\@writefile{toc}{\contentsline {subsubsection}{红黑树结构}{11}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.7}\texttt  {struct st\_rb\_node}}{11}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1.3}总结}{11}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}进程管理: 多级反馈队列}{12}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}进程数据结构}{12}}
+\@writefile{toc}{\contentsline {subsubsection}{\texttt  {task\_struct}结构}{12}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.8}\texttt  {task\_struct}结构}{12}}
+\@writefile{toc}{\contentsline {subsubsection}{\texttt  {task\_union}结构}{13}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.9}\texttt  {task\_union}数据结构}{13}}
+\@writefile{toc}{\contentsline {subsubsection}{\texttt  {regs\_context}结构}{13}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.10}\texttt  {regs\_context}结构}{13}}
+\@writefile{toc}{\contentsline {subsubsection}{\texttt  {ready\_list}结构}{13}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.11}\texttt  {ready\_list}结构}{14}}
+\@writefile{toc}{\contentsline {subsubsection}{其他与进程有关的全局链表}{14}}
+\@writefile{lot}{\contentsline {table}{\numberline {2.1}{\ignorespaces 进程有关全局链表}}{14}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}进程创建}{14}}
+\@writefile{lot}{\contentsline {table}{\numberline {2.2}{\ignorespaces 创建进程过程的层次结构}}{15}}
+\@writefile{lot}{\contentsline {table}{\numberline {2.3}{\ignorespaces \texttt  {task\_create}函数处理层次结构}}{15}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.3}进程退出}{15}}
+\@writefile{lot}{\contentsline {table}{\numberline {2.4}{\ignorespaces \texttt  {pc\_exit}函数处理层次结构}}{16}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.4}进程调度}{16}}
+\@writefile{lot}{\contentsline {table}{\numberline {2.5}{\ignorespaces 进程调度的层次结构}}{17}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.5}进程等待机制}{17}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.6}kill进程}{17}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}进程管理：UC/OS II}{18}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}进程数据结构}{18}}
+\@writefile{toc}{\contentsline {subsubsection}{\texttt  {task\_struct}结构}{18}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.12}\texttt  {task\_struct}数据结构}{18}}
+\@writefile{toc}{\contentsline {subsubsection}{任务就绪表}{19}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.13}任务就绪表定义}{19}}
+\@writefile{toc}{\contentsline {subsubsection}{任务控制块和就绪表的关联}{19}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.14}相关位运算}{19}}
+\@writefile{toc}{\contentsline {subsubsection}{\texttt  {map\_table}表}{19}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.15}\texttt  {map\_table}表}{19}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.2}任务管理操作}{20}}
+\@writefile{toc}{\contentsline {subsubsection}{登记就绪任务}{20}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.16}登记就绪任务操作}{20}}
+\@writefile{toc}{\contentsline {subsubsection}{注销就绪任务}{20}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.17}注销就绪任务操作}{20}}
+\@writefile{toc}{\contentsline {subsubsection}{寻找最高优先级任务}{21}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.18}寻找最高优先级任务操作}{21}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.3}进程调度}{21}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.4}文件系统}{22}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.1}初始化文件系统}{22}}
+\@writefile{lot}{\contentsline {table}{\numberline {2.6}{\ignorespaces 标准MBR结构}}{22}}
+\@writefile{lot}{\contentsline {table}{\numberline {2.7}{\ignorespaces FAT32分区的基本信息}}{22}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.2}FAT32结构}{22}}
+\@writefile{lot}{\contentsline {table}{\numberline {2.8}{\ignorespaces FAT32文件系统磁盘组织简图}}{23}}
+\@writefile{lot}{\contentsline {table}{\numberline {2.9}{\ignorespaces FAT32文件结构}}{23}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.3}FAT32数据结构}{23}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.19}短文件名元数据}{23}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.20}文件结构}{24}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.21}FAT分区的BPB结构}{24}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.22}FAT信息}{25}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.4}FAT32文件系统实现思路}{25}}
+\@writefile{toc}{\contentsline {subsubsection}{查找文件}{25}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces 查找文件}}{25}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces 在目录中查找一个文件项}}{25}}
+\@writefile{toc}{\contentsline {subsubsection}{读文件}{25}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {3}{\ignorespaces 读文件}}{26}}
+\@writefile{toc}{\contentsline {subsubsection}{写文件}{26}}
+\@writefile{toc}{\contentsline {subsubsection}{读目录}{26}}
+\@writefile{toc}{\contentsline {subsubsection}{创建空文件}{26}}
+\@writefile{toc}{\contentsline {subsubsection}{创建目录}{26}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.23}.与..}{26}}
+\@writefile{toc}{\contentsline {subsubsection}{删除}{27}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {4}{\ignorespaces 删除文件}}{27}}
+\@writefile{toc}{\contentsline {subsubsection}{移动}{27}}
+\@writefile{toc}{\contentsline {subsubsection}{相对路径}{27}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.5}源码结构}{28}}
+\@writefile{toc}{\contentsline {subsubsection}{文件概述}{28}}
+\@writefile{lot}{\contentsline {table}{\numberline {2.10}{\ignorespaces 头文件概述}}{28}}
+\@writefile{lot}{\contentsline {table}{\numberline {2.11}{\ignorespaces 源文件概述}}{28}}
+\@writefile{toc}{\contentsline {subsubsection}{代码量统计}{28}}
+\@writefile{lot}{\contentsline {table}{\numberline {2.12}{\ignorespaces 统计}}{28}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}测试过程与结果}{29}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{toc}{\contentsline {section}{\numberline {3.1}内存测试}{29}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.1}memc}{29}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.1}slab分配}{30}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces slab分配}}{30}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.2}slab批量分配以及释放}{30}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.2}{\ignorespaces slab批量分配以及释放}}{31}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.3}malloc/free虚拟内存测试}{31}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.3}{\ignorespaces malloc/free虚拟内存测试}}{32}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.4}malloc/free的增加测试}{32}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.4}{\ignorespaces malloc/free的增加测试}}{32}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.2}进程管理: 多级反馈队列}{33}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}进程创建与退出测试}{33}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.5}{\ignorespaces 进程创建、退出测试}}{33}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.6}{\ignorespaces 进程创建、退出测试}}{34}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}进程调度测试}{34}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.7}{\ignorespaces 进程调度测试}}{34}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}kill进程测试}{35}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.8}{\ignorespaces kill进程测试}}{35}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.3}进程管理：UC/OS II}{36}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.1}进程创建与退出测试}{36}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.9}{\ignorespaces 进程创建测试}}{36}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.2}进程调度}{37}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.10}{\ignorespaces 进程调度测试}}{37}}
+\newlabel{process-img-6}{{3.10}{37}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.11}{\ignorespaces 进程调度测试}}{38}}
+\newlabel{process-img-7}{{3.11}{38}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.4}文件系统}{39}}
+\@writefile{lot}{\contentsline {table}{\numberline {3.1}{\ignorespaces 实现的功能}}{39}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4.1}模拟测试环境}{39}}
+\@writefile{toc}{\contentsline {subsubsection}{模拟\texttt  {ps.c}}{39}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.2}FAT信息}{39}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.3}FAT信息}{40}}
+\@writefile{toc}{\contentsline {subsubsection}{虚拟硬盘}{40}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.12}{\ignorespaces FAT32文件系统磁盘组织简图}}{40}}
+\@writefile{toc}{\contentsline {subsubsection}{ls, cd, mkdir}{41}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.13}{\ignorespaces ls, cd, mkdir测试}}{41}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.14}{\ignorespaces ls, cd, mkdir结果}}{41}}
+\@writefile{toc}{\contentsline {subsubsection}{rm, mv}{41}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.15}{\ignorespaces rm, mv测试}}{41}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.16}{\ignorespaces rm, mv结果}}{42}}
+\@writefile{toc}{\contentsline {subsubsection}{touch, write}{42}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.17}{\ignorespaces touch, write测试}}{42}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.18}{\ignorespaces touch, write结果}}{43}}
+\@writefile{toc}{\contentsline {subsubsection}{cat}{43}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.19}{\ignorespaces cat测试}}{43}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4.2}实际测试}{44}}
+\@writefile{toc}{\contentsline {subsubsection}{ls, cd, mkdir}{44}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.20}{\ignorespaces ls, cd, mkdir}}{44}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.21}{\ignorespaces ls, cd, mkdir测试}}{44}}
+\@writefile{toc}{\contentsline {subsubsection}{touch}{45}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.22}{\ignorespaces touch测试}}{45}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.23}{\ignorespaces touch结果}}{45}}
+\@writefile{toc}{\contentsline {subsubsection}{cat}{45}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.24}{\ignorespaces cat测试}}{45}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.25}{\ignorespaces cat结果}}{46}}
+\@writefile{toc}{\contentsline {subsubsection}{write}{46}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.26}{\ignorespaces write测试}}{46}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.27}{\ignorespaces write结果}}{46}}
+\@writefile{toc}{\contentsline {subsubsection}{mv}{47}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.28}{\ignorespaces mv测试}}{47}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.29}{\ignorespaces mv结果}}{47}}
+\@writefile{toc}{\contentsline {subsubsection}{rm}{47}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.30}{\ignorespaces rm测试}}{47}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.31}{\ignorespaces rm结果}}{48}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}讨论及体会}{49}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{toc}{\contentsline {chapter}{\numberline {5}组内成员分工}{51}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{lot}{\contentsline {table}{\numberline {5.1}{\ignorespaces 分工情况}}{51}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {6}附注}{52}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{toc}{\contentsline {chapter}{\numberline {7}参考文献}{53}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}

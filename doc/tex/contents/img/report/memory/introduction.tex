@@ -1,0 +1,29 @@
+\section{内存管理}
+
+本操作系统的内存管理结构设计包括物理内存的管理、用户进程的虚拟地址段管理和相应的申请内存系统调用。
+
+对比助教组，此操作系统重构了slab，设计了进程下的红黑树管理VMA，完成了malloc和free设计。
+
+对于物理内存，其由bootmem, buddy和slab三个子模块组成。直接与进程部分和虚拟内存交互的是slab模块。其通过缓存的方式提高申请以及释放内存的速度。所以对于助教的代码进行了重构，优化了代码结构。便于在其他部分，尤其是VMA的实现中调用。
+
+对于VMA管理，使用了红黑树的结构，优化了使用速度，使得LRU算法可以在此基础上拓展。
+
+为了配合VMA的实现，加入了对于用户虚拟内存的申请和释放函数。用户程序在执行的过程中可以利用malloc/free来申请和释放内存。
+
+提供的用户指令：
+
+\begin{table}[H]
+  \centering
+  \caption{用户指令}
+  \begin{tabular}{|c|c|}
+    \hline
+    \texttt{slabone} & \makecell{申请1000字节的内存块，不释放。\\输出申请前后的Buddy信息} \\
+    \hline
+    \texttt{slabck} & \makecell{申请99个100字节的内存块，释放。\\输出申请和释放前后的Buddy信息} \\
+    \hline
+    \texttt{memc} & \makecell{malloc 10个10大小的虚拟内存，然后逐个free。\\输出VMA在\texttt{mm\_struct}的红黑树中的颜色} \\
+    \hline
+    \texttt{mem\_alltree} & \makecell{malloc 7个10大小的虚拟内存，然后从小地址到大地址free。\\输出每步中红黑树的BFS下的结构。} \\
+    \hline
+  \end{tabular}
+\end{table}

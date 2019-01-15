@@ -1,0 +1,44 @@
+\section{文件系统}
+
+对于用户来说，文件系统能够帮助用户在FAT32文件系统中实现以下指令：
+其中底层文件系统应该具备：
+
+\begin{itemize}
+\item 读文件
+\item 写文件
+\item 删除文件
+\item 创建文件
+\item 移动文件
+\item 创建目录
+\item 读目录
+\item 写目录
+\end{itemize}
+
+实现这些功能可以使得以下指令得以运行
+
+\begin{table}[H]
+  \centering
+  \caption{提供的用户指令}
+  \begin{tabular}{|c|c|}
+  \hline
+  指令 & 説明 \\
+  \hline
+  ls & 列举目录中的内容 \\
+  \hline
+  cd & 改变当前的工作目录 \\
+  \hline
+  cat & 输出文件内容 \\
+  \hline
+  touch & 创建文件 \\
+  \hline
+  mkdir & 创建目录 \\
+  \hline
+  rm & 删除文件 \\
+  \hline
+  write & 改变文本文件的内容 \\
+  \hline
+  mv & 移动文件 \\
+  \hline
+  \end{tabular}
+\end{table}
+

@@ -1,0 +1,82 @@
+\section{内存测试}
+
+内存测试的四条指令
+
+\begin{itemize}
+\item \texttt{slabone}
+\item \texttt{slabck}
+\item \texttt{memc}
+\item \texttt{mem\_alltree}
+\end{itemize}
+
+\begin{lstlisting}[caption=memc]
+  for (i = 0; i < total; i++) adArr[i] = malloc(size);
+  for (i = 0; i < total; i++) free(adArr[i]);
+
+slabck:
+	buddy_info();
+	for (i = 0; i<total; i++) addrArr[i] = kmalloc(size);
+	kernel_printf("Allocate %d blocks sized %d byte\n", total, size);
+	buddy_info();
+	for (i = 0; i<total; i++) kfree(addrArr[i]);
+	kernel_printf("Deallocate\n");
+	buddy_info();
+
+slabone:
+	buddy_info();
+	addrArr[1] = kmalloc(size);
+	kernel_printf("sized %d byte\n", size);
+
+  buddy_info();
+\end{lstlisting}
+
+\texttt{mem\_alltree}为验收后增加的模块，\\
+增加了在删除和插入时执行\texttt{void BFS(mm\_struct *mm)}，\\
+通过\texttt{mm\_struct}找到当前进程块的红黑树的根节点，然后进行BFS访问。\\
+其它代码与\texttt{memck}相同，为了便于计算验证，把10个节点换成了7个。
+
+\subsection{slab分配}
+ 
+申请了1000字节的内存块。观察到Buddy系统信息：共使用一页。这是正确的。此指令没有进行free，在在此基础上，我们计算批量分配和释放的页占用是否合理。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{memory/img/2.png}
+  \caption{slab分配}
+\end{figure}
+
+\subsection{slab批量分配以及释放}
+
+申请了99个100字节的内存块。计算得到应该占用3页。考虑到上一条指令占用了一页的一部分。此时4页的数字是比较合理的。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{memory/img/3.png}
+  \caption{slab批量分配以及释放}
+\end{figure}
+
+\subsection{malloc/free虚拟内存测试}
+
+因为malloc和free都会对vma对应的红黑树做操作。所以直接在红黑树节点插入和删除的时候输出节点颜色。通过malloc和free对应地址的计算，可以得到vma是否正常被分配，以及是否成功插入和删除红黑树节点。
+
+从低地址到高地址申请了10个节点，同时从高地址到地地址释放了所有节点。可以观察到，第一个是0，后面是1。删除的时候，最后一个是0，前面是1。(未拍下最后一个0，验收时助教已看到)。这是因为，在红黑树从1到10插入，从10到1删除时，就是这样的。但是在助教的解释下，我也觉得这样不能很好的反映VMA的结构。所以设计了下面的指令。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{memory/img/4.png}
+  \caption{malloc/free虚拟内存测试}
+\end{figure}
+
+\subsection{malloc/free的增加测试}
+
+在助教的建议下，每次插入和删除都对红黑树进行广度优先遍历，同时输出树节点的颜色。此时可以通过观察红黑树是否符合定义来判断vma是否正常分配。
+
+为了显示版本的区别，我在输出时输出的颜色与之前版本相反。
+
+此为广度优先(BFS)遍历树的颜色输出。通过手工计算模拟红黑树的插入和删除，得到这是符合从低地址到高地址插入7个点，再从低地址到高地址删除7个点的红黑树结构的。故而malloc和free的结构没有问题，可以正常使用，红黑树结构也使得虚拟内存可以更好地支持以后对性能要求较高的拓展。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{memory/img/5.png}
+  \caption{malloc/free的增加测试}
+\end{figure}

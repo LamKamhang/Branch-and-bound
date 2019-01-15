@@ -1,0 +1,429 @@
+\section{文件系统}
+
+本次工程实现的文件系统是MBR上的FAT32。
+
+
+
+\subsection{初始化文件系统}
+
+
+
+硬盘分割主要有两种分割表，GPT与MBR，MBR虽然比较旧而且最多只能由4个主要分区，但因爲设计简单，本文件系统设计只支持MBR分割表。
+
+
+\begin{table}[H]
+  \centering
+  \caption{标准MBR结构}
+  \begin{tabular}{|c|c|c|}
+  \hline
+  地址 & 描述                                                & 长度(字节)        \\
+  \hline
+  0    & 代码区                                              & \makecell{440\\(最大446)} \\
+  \hline
+  440  & 选用磁盘标志                                        & 4                   \\
+  \hline
+  444  & 一般为空值; 0x0000                                  & 2                   \\
+  \hline
+  446  & \makecell{标准MBR分区表规划\\(四个16 byte的主分区表入口)} & 64                  \\
+  \hline
+  510  & 0x55                                                & 1                   \\
+  \hline
+  511  & 0xAA                                                & 1                   \\
+  \hline
+  \end{tabular}
+\end{table}
+
+如上表，MBR在硬盘中的第一个扇区，啓动时必须先通过读MBR知道FAT32分区的位置，并且再读FAT32的BIOS Parameter Block(BPB)，初始化FAT32分区的基本信息
+
+
+
+\begin{table}[H]
+  \centering
+  \caption{FAT32分区的基本信息}
+  \begin{tabular}{|c|c|}
+  \hline
+  变量名              & 意义                  \\
+  \hline
+  \texttt{total\_sectors}        & 总共有多少扇区        \\
+  \hline
+  \texttt{sectors\_per\_fat}     & 一个FAT中有多少个扇区 \\
+  \hline
+  \texttt{first\_data\_sector}   & 第一个数据扇区位置    \\
+  \hline
+  \texttt{total\_data\_sectors}  & 数据扇区数量          \\
+  \hline
+  \texttt{total\_data\_clusters} & 数据簇数量            \\
+  \hline
+  \end{tabular}
+\end{table}
+
+
+
+
+
+
+\subsection{FAT32结构}
+
+
+
+FAT32文件系统中，文件的分配方式是链表分配，文件拥有的所有磁盘块将在文件分配表中以链表的形式记录下来。如下简图所示: 
+
+\begin{table}[H]
+  \centering
+  \caption{FAT32文件系统磁盘组织简图}
+  \includegraphics[scale=0.8]{filesystem/img/fat.pdf}
+\end{table}
+
+
+
+
+
+FAT32的短文件名都是固定长度为32字节的元数据，记录文件的名称丶扩展名丶属性丶大小丶 位置丶时间等信息。
+
+\begin{table}[H]
+  \centering
+  \caption{FAT32文件结构}
+  \begin{tabular}{|c|c|c|}
+  \hline
+  偏移量 & 长度(字节) & 描述                                                         \\
+  \hline
+  0x00   & 8          & 文件名                                                       \\
+  \hline
+  0x08   & 3          & 扩展名                                                       \\
+  \hline
+  0x0B   & 1          & \makecell{文件属性\\本系统主要用到的有\\0x10代表子目录，\\0x20代表文件} \\
+  \hline
+  0x0C   & 1          & 保留                                                         \\
+  \hline
+  0x0D   & 1          & 创建时间                                                     \\
+  \hline
+  0x0E   & 2          & 创建时间                                                     \\
+  \hline
+  0x10   & 2          & 创建日期                                                     \\
+  \hline
+  0x12   & 2          & 最近访问日期                                                 \\
+  \hline
+  0x14   & 2          & FAT32中第一个簇的两个高字节                                  \\
+  \hline
+  0x16   & 2          & 最后更改时间                                                 \\
+  \hline
+  0x18   & 2          & 最后更改日期                                                 \\
+  \hline
+  0x1A   & 2          & FAT32中第一个簇的两个低字节。                                \\
+  \hline
+  0x1C   & 4          & 文件大小                                                     \\
+  \hline
+  \end{tabular}
+\end{table}
+
+
+
+
+\subsection{FAT32数据结构}
+
+C语言中，用\texttt{struct \_\_attribute\_\_((\_\_packed\_\_))}定义结构可以使二进制数据按照定义顺序存储，搭配\texttt{union}定义结构，可以让读数据变得方便许多。
+
+\begin{lstlisting}[caption=短文件名元数据]
+struct __attribute__((__packed__)) dir_entry_attr {
+    u8 name[8];                   /* Name */
+    u8 ext[3];                    /* Extension */
+    u8 attr;                      /* attribute bits */
+    u8 lcase;                     /* Case for base and extension */
+    u8 ctime_cs;                  /* Creation time, centiseconds (0-199) */
+    u16 ctime;                    /* Creation time */
+    u16 cdate;                    /* Creation date */
+    u16 adate;                    /* Last access date */
+    u16 starthi;                  /* Start cluster (Hight 16 bits) */
+    u16 time;                     /* Last modify time */
+    u16 date;                     /* Last modify date */
+    u16 startlow;                 /* Start cluster (Low 16 bits) */
+    u32 size;                     /* file size (in bytes) */
+};
+
+union dir_entry {
+    u8 data[32];
+    struct dir_entry_attr attr;
+};
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption=文件结构]
+struct fat_file {
+    u8 path[256];
+    /* Current file pointer */
+    u32 loc;
+    /* Current directory entry position */
+    u32 dir_entry_pos;
+    u32 dir_entry_sector;
+    /* current directory entry */
+    union dir_entry entry;
+};
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption=FAT分区的BPB结构]
+struct __attribute__((__packed__)) BPB_attr {
+  u8 BS_jmpBoot[3];    /*  jump_code[3] */
+  u8 BS_OEMName[8];    /*  oem_name[8] */
+  u16 BPB_BytsPerSec;  /*  sector_size */
+  u8 BPB_SecPerClus;   /*  sectors_per_cluster */
+  u16 BPB_RsvdSecCnt;  /*  reserved_sectors */
+  u8 BPB_NumFATs;      /*  number_of_copies_of_fat */
+  u16 BPB_RootEntCnt;  /*  max_root_dir_entries */
+  u16 BPB_TotSec16;    /*  num_of_small_sectors */
+  u8 BPB_Media;        /*  media_descriptor */
+  u16 BPB_FATSz16;     /*  sectors_per_fat */
+  u16 BPB_SecPerTrk;   /*  sectors_per_track */
+  u16 BPB_NumHeads;    /*  num_of_heads */
+  u32 BPB_HiddSec;     /*  num_of_hidden_sectors */
+  u32 BPB_TotSec32;    /*  num_of_sectors */
+  u32 BPB_FATSz32;   /*  num_of_sectors_per_fat */
+  u16 BPB_ExtFlags;  /*  flags */
+  u16 BPB_FSVer;     /*  version */
+  u32 BPB_RootClus;  /*  cluster_number_of_root_dir */
+  u16 BPB_FSInfo;       /*  sector_number_of_fs_info */
+  u16 BPB_BkBootSec;    /*  sector_number_of_backup_boot */
+  u8 BPB_Reserved[12];  /*  reserved_data[12] */
+  u8 BS_DrvNum;      /*  logical_drive_number */
+  u8 BS_Reserved1;   /*  unused */
+  u8 BS_BootSig;     /*  extended_signature */
+  u32 BS_VolID;      /*  serial_number */
+  u8 BS_VolLab[11];  /*  volume_name[11] */
+  u8 BS_FilSysType[8];  /*  fat_name[8] */
+  u8 exec_code[420];     /*  exec_code[420] */
+  u8 Signature_word[2];  /*  boot_record_signature[2] */
+};
+
+union BPB_info {
+  u8 data[512];
+  struct BPB_attr attr;
+};
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption=FAT信息]
+struct fs_info {
+  u32 base_addr;
+  u32 sectors_per_fat;
+  u32 total_sectors;
+  u32 total_data_clusters;
+  u32 total_data_sectors;
+  u32 first_data_sector;
+  union BPB_info BPB;
+  u8 fat_fs_info[SECTOR_SIZE];
+};
+\end{lstlisting}
+
+
+\subsection{FAT32文件系统实现思路}
+
+
+
+\subsubsection{查找文件}
+
+查找文件(文件项，file entry)是文件系统中最重要的功能，因爲每个文件都必须要先被开啓，知道该文件的实际位置后才能对文件做其他操作(读丶写等)。实现思路如下: 
+
+
+\begin{algorithm}[H]
+	\caption{查找文件}
+	\begin{algorithmic}[1]
+		\Function {查找文件}{路径}
+      \State 解析路径
+      \For {每一层目录，由左往右遍历}
+        \State 查找在当前目录中下一层目录的文件项
+        \State 继续循环，将扇区指向下一层目录，直到最後一层
+      \EndFor
+		\EndFunction
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+	\caption{在目录中查找一个文件项}
+	\begin{algorithmic}[1]
+		\Function {在目录中查找一个文件项}{目录}
+      \State 将扇区指向当前簇的第一个扇区
+      \For {簇中的8个扇区，依序读入}
+        \State 查找是否有文件名与欲查找的名称相同
+        \State 若有，则离开循环，以这个文件项作爲返回值
+        \State 到FAT中查找下一个簇号，如果没有，则离开，并返回查找失败
+        \State 将下一个簇号转换为扇区号
+      \EndFor
+		\EndFunction
+	\end{algorithmic}
+\end{algorithm}
+
+
+\subsubsection{读文件}
+
+对於一个已经开啓的文件，可以从偏移量0x14，0x1A知道文件实际所在的簇号，然後进入文件数据区读取文件，过程如下: 
+
+
+\begin{algorithm}[H]
+	\caption{读文件}
+	\begin{algorithmic}[1]
+		\Function {读文件}{目录}
+      \State 开啓文件
+      \State 取得文件所在簇号
+      \State 依照要读入的大小丶开始位置，计算开始丶结束的簇丶字节数
+      \For {每一个簇}
+        \State 若还没到开始的簇，则跳过
+        \State 如果在开始丶结束的簇之中，需要考虑字节偏移量
+        \State 一般的情况则读满8个扇区
+        \State 到FAT中查找下一个簇号，如果没有，则离开，并返回失败
+      \EndFor
+		\EndFunction
+	\end{algorithmic}
+\end{algorithm}
+
+
+\subsubsection{写文件}
+
+写文件与读文件基本相同，只有最後一步不同，如果到FAT中查找下一个簇号失败，表示文件原本的空间不够用，应该要在FAT中查找可用空间，然後修改FAT的信息，将文件原来的最後一个簇指向新获取的簇。
+
+
+
+\subsubsection{读目录}
+
+读目录与查找文件非常相近，可以先利用开啓文件将目录开啓(目录与文件的元数据并没有本质区别，都是32字节的文件项)，然後以32字节为单位读该文件中的内容，若是遇到合法的文件属性就输出。
+
+
+
+\subsubsection{创建空文件}
+
+创建空文件的方法很简单，在目录中读到第一个空白(或者是被擦除)的32字节就能将其作爲放新文件的位置，然後更新所在目录的扇区。
+
+
+
+\subsubsection{创建目录}
+
+创建目录首先要创建一个空文件，然後获取一个新的簇给这个文件，在将\texttt{.}与\texttt{..}写入簇中的前0到31丶32到64字节。
+
+
+
+前64字节的内容直接写成固定的形式如下: 
+
+\begin{lstlisting}[caption=.与..]
+/* entry of '.' */
+const u8 dot[32] = {
+    0x2E, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+    0x20, 0x20, 0x20, 0x10, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, dc0, dc1, 0x00, 0x00,
+    0x00, 0x00, dc2, dc3, 0x00, 0x00, 0x00, 0x00};
+
+/* entry of '..' */
+const u8 double_dot[32] = {
+    0x2E, 0x2E, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+    0x20, 0x20, 0x20, 0x10, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, ddc0, ddc1, 0x00, 0x00,
+    0x00, 0x00, ddc2, ddc3, 0x00, 0x00, 0x00, 0x00};
+\end{lstlisting}
+
+
+\subsubsection{删除}
+
+删除分成两个部分，一是删除在目录中的文件项，二是删除文件实际内容，并且释放文件所占的空间，过程如下: 
+
+\begin{algorithm}[H]
+	\caption{删除文件}
+	\begin{algorithmic}[1]
+		\Function {删除文件}{文件}
+      \State 开啓文件
+      \State 取得文件所在簇号
+      \For {每一个簇}
+        \State 到FAT中查找下一个簇号，如果没有，则离开。
+        \State 修改FAT，把当前簇的下一个簇改成0(代表空闲簇)
+        \State 进入下一个簇
+      \EndFor
+      \State 读文件所在的目录
+      \State 修改该文件的元数据为0，第一个字节为0xE5(代表被擦除)
+      \State 写回目录
+		\EndFunction
+	\end{algorithmic}
+\end{algorithm}
+
+
+\subsubsection{移动}
+
+文件的移动并不涉及文件数据的移动，只是修改在目录中的信息而已，如同链表一般，修改某个节点只需要$O(1)$的时间，过程如下: 
+
+\begin{enumerate}
+  \item 找到来源路径的文件项
+  \item 复制文件项32字节的数据
+  \item 在目标路径创建文件项，使用复制的数据
+  \item 删除来源路径的文件项
+\end{enumerate}
+
+
+\subsubsection{相对路径}
+
+前面的创建目录已经实现了\texttt{.}与\texttt{..}，因此剩下的部分只有实现维护\texttt{pwd}，\texttt{pwd}是一个文件项的全局变量，在文件系统初始化时，多加了一行开啓根目录为\texttt{pwd}。
+
+
+\subsection{源码结构}
+
+\subsubsection{文件概述}
+
+\begin{table}[H]
+  \centering
+  \caption{头文件概述}
+  \begin{tabular}{|c|c|}
+  \hline
+  文件名 & 描述 \\
+  \hline
+  \texttt{fat.h}  & \makecell{FAT32底层文件系统的对象的定义，\\对象专用的方法丶文件系统的接口，\\文件系统内部函数等函数的声明。} \\
+  \hline
+  \texttt{usr.h} & \makecell{实现提供用户操作接口，\\比如\texttt{cat},\texttt{ls},\texttt{cd}等函数的声明。} \\
+  \hline
+  \texttt{utils.h} & 一些工具函数的声明。 \\
+  \hline
+  \texttt{include/fat.h} & \makecell{将能提供给其他程序的系统调用声明於此，\\相较於\texttt{fat.h}，\\\texttt{include/fat.h}对外是公用的。} \\
+  \hline
+  \end{tabular}
+\end{table}
+
+
+\begin{table}[H]
+  \centering
+  \caption{源文件概述}
+  \begin{tabular}{|c|c|}
+  \hline
+  文件名 & 描述 \\
+  \hline
+  \texttt{fat.c} & \makecell{FAT32底层文件系统的对象专用的方法丶文件系统的接口，\\文件系统内部函数等函数的定义。} \\
+  \hline
+  \texttt{usr.c}  & \makecell{实现提供用户操作接口，\\比如\texttt{cat},\texttt{ls},\texttt{cd}等函数的定义。} \\
+  \hline
+  \texttt{utils.c} & 一些工具函数的定义。 \\
+  \hline
+  \end{tabular}
+\end{table}
+
+
+\subsubsection{代码量统计}
+
+\begin{table}[H]
+  \centering
+  \caption{统计}
+  \begin{tabular}{|c|c|}
+  \hline
+  行数 & 文件名 \\
+  \hline
+  1370 & \texttt{fat.c}   \\
+  \hline
+  337  & \texttt{usr.c}   \\
+  \hline
+  95   & \texttt{utils.c} \\
+  \hline
+  144  & \texttt{fat.h}   \\
+  \hline
+  7    & \texttt{usr.h}   \\
+  \hline
+  29   & \texttt{utils.h} \\
+  \hline
+  219  & \texttt{include/fat.h} \\
+  \hline
+  2201 & 全部    \\
+  \hline
+  \end{tabular}
+\end{table}
+

@@ -1,0 +1,99 @@
+\section{Parse}
+程序接受的输入格式是\textbf{.lp}文件，这种格式并没有办法很容易地给单纯形法作爲输入，因此需要一个转换工具。
+
+首先需要定义一些类表示输入信息
+
+异常，如果发先未知的语句会抛出异常，以及原因。
+
+
+\begin{lstlisting}[language=C++]
+    class ParseException
+\end{lstlisting}
+
+变量的上下界
+
+\begin{lstlisting}[language=C++]
+    class Bounds {
+        public:
+            // lower <= x && x <= upper
+            int upper, lower;
+    };
+\end{lstlisting}
+
+在约束式中的变量，有变量的索引、係数
+
+\begin{lstlisting}[language=C++]
+    class Variable {
+        public:
+            int coefficient;
+            size_t index;
+    };
+\end{lstlisting}
+
+
+约束，可以分$\leq, \geq, =$三种情况，然后包含一个容器装约束中的变量，还有一个常数。
+左右顺序是: $C_1, C_2, ..., C_N \leq \text{Constant}$
+
+\begin{lstlisting}[language=C++]
+    class Condition {
+        public:
+            enum Type { eq, leq, geq };
+            Type type;
+            std::vector<Variable> variables;
+            int constant;
+    };
+\end{lstlisting}
+
+
+\textbf{Data}包含所有的数据:
+\begin{itemize}
+    \item 约束: \textbf{conditions}
+    \item 变量的上下界: \textbf{bounds}
+    \item 变量的索引: \textbf{indices}
+    \item 目标函数: \textbf{function}
+\end{itemize}
+
+\begin{lstlisting}[language=C++]
+    class Data {
+        private:
+            std::vector<Condition> conditions;
+            std::vector< std::pair<size_t, Bounds> > bounds;
+            std::vector<size_t> indices;
+            std::vector<Variable> function;
+    };
+\end{lstlisting}
+
+
+虽然输入类似\textbf{C}的风格，是个上下文无关文法，但是爲了方便就简化为正则语言(应该不会出现非正则的情况)。
+
+\subsection{预处理}
+\begin{itemize}
+	\item 移除注释 $/\backslash \backslash *(.|\backslash n)*?\backslash \backslash */$
+	\item 移除多馀空白$\^ \backslash \backslash s*\$$
+	\item 移除换行，用空白取代$[\backslash n\backslash r]$
+\end{itemize}
+
+
+预处理之后，整个输入就可以当作一行，然后用\textbf{;}符号当作真正的换行重新分行，一行一行处理
+
+对于每一行，可以分成几种类型
+\begin{itemize}
+    \item \textbf{int} 定义变量
+    \item \textbf{max}, \textbf{min}
+    \item 约束
+\end{itemize}
+
+\subsection{优化}
+
+对于约束如果变量只有1个的情况，可以当作该变量的上下界，因爲我们实现的是分支定界法，所以这些信息可以对算法效率有帮助。
+
+值得注意的事情是如果变量的係数是负数，大于、小于要交换。
+
+\subsection{工具函数}
+
+\begin{lstlisting}[language=C++]
+    std::vector<std::string> Data::Split(const std::string & input, char delim);
+    std::string Data::Join(const std::vector<std::string> & input);
+\end{lstlisting}
+
+\textbf{a;b; c}或\textbf{a, b,$\backslash$nc,d}这类代表多个元素合在一个字符串上的形式，因爲比较复杂，需要合并、分割这两种功能来实现分开。

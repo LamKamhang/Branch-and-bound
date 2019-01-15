@@ -1,0 +1,243 @@
+\section{文件系统}
+
+
+本文件系统基本实现了在FAT32上对数据增丶删丶查丶改4项数据基本操作，并且支持绝对路径与相对路径，经过在PC上模拟测试以及实际测试，功能都正常运行。
+
+
+
+
+\begin{table}[H]
+  \centering
+  \caption{实现的功能}
+  \begin{tabular}{|c|c|c|}
+  \hline
+  功能     & 系统调用 & 用户接口          \\
+  \hline
+  读文件   & \texttt{fs\_read} & \texttt{cat} \\
+  \hline
+  写文件   & \texttt{fs\_write} & \texttt{write} \\
+  \hline
+  读目录   & \texttt{fs\_read\_dir} & \texttt{ls}, \texttt{cd} \\
+  \hline
+  删除文件 & \texttt{fs\_remove\_file} & \texttt{rm} \\
+  \hline
+  新建文件 & \texttt{fs\_create} & \texttt{touch} \\
+  \hline
+  新建目录 & \texttt{fs\_mkdir} & \texttt{mkdir} \\
+  \hline
+  \end{tabular}
+\end{table}
+
+
+
+\subsection{模拟测试环境}
+
+
+
+由於在文件系统底层涉及许多二进制操作，每一个操作如直接到实体机上测试，难以验证其正确性(比如先读丶然後写，虽然在实体机上的输出都是正确，但也有可能是读写一起发生错误，如此会非常难以检查错误发生的位置)，因此开发过程中，可以现在PC上用虚拟硬盘丶二进制浏览器丶文件浏览器以及自己模拟实现的用户界面测试。
+
+\subsubsection{模拟\texttt{ps.c}}
+
+
+
+在ZJUNIX中，用户接口实现在\texttt{ps.c}之中，而开发过程中可以在PC上模拟这个功能，实现如下:
+
+\begin{lstlisting}[caption=FAT信息]
+int main() {
+  init_fs();
+
+  char buf[512];
+  char arg0[128];
+  char arg1[128];
+  char arg2[128];
+
+  while (1) {
+    printf("%s $\n", pwd.path);
+    gets(buf);
+    sscanf(buf, "%s%s%s", arg0, arg1, arg2);
+    
+    if (strcmp(arg0, "cat") == 0) {
+      if (fs_cat(arg1) != 0) {
+        puts("fail");
+      }
+    } else if (strcmp(arg0, "touch") == 0) {
+      if (fs_touch(arg1) != 0) {
+        puts("fail");
+      }
+    } else if (strcmp(arg0, "rm") == 0) {
+        /* skip */
+    }
+    puts("");
+  }
+\end{lstlisting}
+
+
+
+
+另外还需要模拟硬件接口，具体需要如下几个函数:
+
+\begin{lstlisting}[caption=FAT信息]
+void * kernel_memset (void * ptr, int value, size_t num);
+void* kmalloc (size_t size);
+int kernel_printf(const char * format, ...);
+void kfree(void* ptr);
+int read_block(unsigned char *buf, unsigned int addr, unsigned int count);
+int write_block(unsigned char *buf, unsigned int addr, unsigned int count);
+\end{lstlisting}
+
+这些函数的实现都可以直接调用\texttt{stdio.h}以及\texttt{stdlib.h}。
+
+
+\subsubsection{虚拟硬盘}
+
+虚拟硬盘可以用Windows的管理工具建立。
+
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.5]{filesystem/img/vhd.png}
+  \caption{FAT32文件系统磁盘组织简图}
+\end{figure}
+
+\subsubsection{ls, cd, mkdir}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/ls-pc-1.png}
+  \caption{ls, cd, mkdir测试}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/ls-pc-2.png}
+  \caption{ls, cd, mkdir结果}
+\end{figure}
+
+
+\subsubsection{rm, mv}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/rm-pc-1.png}
+  \caption{rm, mv测试}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/rm-pc-2.png}
+  \caption{rm, mv结果}
+\end{figure}
+
+
+\subsubsection{touch, write}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/write-pc-1.png}
+  \caption{touch, write测试}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/write-pc-2.png}
+  \caption{touch, write结果}
+\end{figure}
+
+\subsubsection{cat}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/cat-pc-1.png}
+  \caption{cat测试}
+\end{figure}
+
+\newpage
+\subsection{实际测试}
+
+\subsubsection{ls, cd, mkdir}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{filesystem/img/ls-a-1.jpg}
+  \includegraphics[scale=0.6]{filesystem/img/ls-a-2.jpg}
+  \caption{ls, cd, mkdir}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{filesystem/img/ls-a-3.jpg}
+  \caption{ls, cd, mkdir测试}
+\end{figure}
+
+\subsubsection{touch}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/touch-a-1.jpg}
+  \caption{touch测试}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/touch-a-2.png}
+  \caption{touch结果}
+\end{figure}
+
+\subsubsection{cat}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/cat-a-1.jpg}
+  \caption{cat测试}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/cat-a-2.png}
+  \caption{cat结果}
+\end{figure}
+
+
+\subsubsection{write}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/write-a-1.jpg}
+  \caption{write测试}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/write-a-2.png}
+  \caption{write结果}
+\end{figure}
+
+
+\subsubsection{mv}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/mv-a-1.jpg}
+  \caption{mv测试}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/mv-a-2.png}
+  \caption{mv结果}
+\end{figure}
+
+\subsubsection{rm}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/rm-a-1.jpg}
+  \caption{rm测试}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{filesystem/img/rm-a-2.png}
+  \caption{rm结果}
+\end{figure}
+

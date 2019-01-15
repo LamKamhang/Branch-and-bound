@@ -1,0 +1,97 @@
+\section{进程管理: 多级反馈队列}
+
+\subsection{进程创建与退出测试}
+
+\texttt{execk 进程名}
+
+为了测试进程创建功能，我们提供了\texttt{execk 进程名}测试指令。该指令的执行会在系统中新建一个进程，并且进程名即为输入指令后面的参数。测试结果照片如下。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{process/img/1.png}
+  \caption{进程创建、退出测试}
+\end{figure}
+
+
+在上图中，我们可以看到在我们输入\texttt{execk test}命令后，第一个模块起始为 \texttt{exec\_from\_kernel():begin}和\texttt{exec\_from\_kernel():end} ，在这之中完成了进程的创建，我们可以看到\texttt{execk return with 0}的返回值，这表明进程成功创建了。第二个模块起始为\texttt{runprog()}，进入了内核进程的执行函数，我们可以看到\texttt{excute task pid = 2}说明进程现在正在执行，此后，我们可以看到一系列有关\texttt{pc\_exited()}的操作，说明当前内核进程已经执行完毕，正在退出。在最后我设置打印出了所有进程链表中的信息，我们可以看到存在一个状态为\texttt{TASK\_EXITED}的进程，表示进程已退出完毕。(在打印操作后会将进程移出所有进程链表)。
+
+
+
+\texttt{execprio 进程优先级}
+
+ 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{process/img/2.png}
+  \caption{进程创建、退出测试}
+\end{figure}
+
+
+为了测试进程创建功能，我们提供了\texttt{execprio 进程优先级}测试指令。该指令的执行会在系统中新建一个进程，并且进程名即为输入指令后面的参数。测试结果照片如上。我们可以看到在我们输入\texttt{execprio 20}命令后，第一个模块以结束\texttt{exec\_from\_kernel():end} ，在这之中完成了进程的创建。第二个模块起始为\texttt{runprog()}，进入了内核进程的执行函数，我们可以看到\texttt{current\_task: 2}的多次输出说明进程现在正在执行，此后，我们可以看到一系列有关\texttt{pc\_exited()}的操作，说明当前内核进程已经执行完毕，正在退出。(这是第一个版本的图片，因而打印输出和前图有所不同)
+
+\subsection{进程调度测试}
+
+为了测试多级就绪队列，看出它的动态更新优先级时间片，我们连续创建两个优先级相同的进程，查看测试结果。测试结果图片如下。
+
+ 
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{process/img/3.png}
+  \caption{进程调度测试}
+\end{figure}
+
+
+首先，我们使用\texttt{execprio 4}两次，以创建两个name为\texttt{Process4}的进程。在图中第一部分是第二次优先级为4的进程执行结束，我们立即输入ps来打印所有进程链表信息，可以看到两个初始优先级都为4的进程都已完成执行，并退出。但是两个进程现在呈现的优先级已经不相同，并且具有不同的时间片。说明在调度执行的过程中，优先级和时间片确在动态更新。
+
+\subsection{kill进程测试}
+
+为了测试进程创建功能，我们提供了\texttt{kill 进程pid}测试指令。该指令的执行会在系统中新建一个进程，并且进程名即为输入指令后面的参数。测试结果照片如下。
+
+ 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=1]{process/img/4.png}
+  \caption{kill进程测试}
+\end{figure}
+
+首先我们输入ps指令，以确保pid = 3的进程仍然在就绪队列中。如上图所示，此时该进程确实仍存在于系统之中，且处于就绪状态。然后我们输入\texttt{kill 3}指令，之后再次输入ps指令，从上图中可以看到，此时该进程已经不再存在于系统之中，这表明该进程已经成功被kill掉了。
+
+
+
+\section{进程管理：UC/OS II}
+
+\subsection{进程创建与退出测试}
+
+\texttt{execk 进程名}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{process/img/5.png}
+  \caption{进程创建测试}
+\end{figure}
+
+在初始化后，我们可以使用\texttt{ps}命令，展示当前所有链表信息和任务就绪表的全部内容。我们可以看到仅IDLE进程(优先级数值为63)在任务就绪表中为\texttt{TASK\_TURE}。而其他优先级都为\texttt{TASK\_FALSE}。
+
+\subsection{进程调度}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{process/img/6.png}
+  \caption{进程调度测试}
+  \label{process-img-6}
+\end{figure}
+
+
+首先，我们使用了\texttt{execk test}创建了一个进程，在系统中分配了一个空闲的优先级53给新进程。进程创建后，我们立即打印了当前所有链表信息，和任务就绪表的全部内容。可以看到处于就绪表中的进程53和63在表中的状态是\texttt{TASK\_TURE}，如图\ref{process-img-6}。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{process/img/7.png}
+  \caption{进程调度测试}
+  \label{process-img-7}
+\end{figure}
+
+此时进程的优先级数值上高于kernel进程，但实际优先级意义上低于kernel进程，当kernel进程的时间片用完时，该进程被立即执行，再一次打印输出任务就绪表的全部内容，则显示该进程已不在就绪表中，如图\ref{process-img-7}。
+
