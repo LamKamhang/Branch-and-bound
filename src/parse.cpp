@@ -408,7 +408,7 @@ std::string Data::Print()
 	output << indexSize << std::endl;
 
 	for (const auto & var : function){
-		output << var.coefficient << " " << var.index << " ";
+		output << var.coefficient << " " << mapIndex[var.index] << " ";
 	}
 	output << std::endl;
 	
@@ -416,7 +416,7 @@ std::string Data::Print()
 	for (const auto p : this->bounds) {
 		size_t index = p.first;
 		const Bounds & bounds = p.second;
-		output << index << " " << bounds.lower << " " << bounds.upper << std::endl;
+		output << mapIndex[index] << " " << bounds.lower << " " << bounds.upper << std::endl;
 	}
 
 	output << eq.size() << std::endl;
