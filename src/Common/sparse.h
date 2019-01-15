@@ -258,10 +258,11 @@ void Data::Parse(const std::string & input_)
 	using std::stringstream;
 
 	string input = input_;
+	//std::cout<<input<<std::endl;
 	input = std::regex_replace(input, regex("/\\*(.|\n)*?\\*/"), ""); // remove comment
 	input = std::regex_replace(input, regex("^\\s*$"), ""); // remove blank
 	input = std::regex_replace(input, regex("[\n\r]"), " "); // remove line
-
+	//std::cout<<input<<std::endl;
 	stringstream buffer(input);
 	for (string line; std::getline(buffer, line, ';'); ) {
 		vector<string> tokens = Data::Split(line, ' ');
