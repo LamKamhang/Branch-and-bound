@@ -157,6 +157,7 @@ def test():
 
 def test1():
     c, A_ub, b_ub, A_eq, b_eq, bound = lpreader(sys.argv[1])
+    print(c, A_ub, b_ub, A_eq, b_eq, bound)
     res = my_simplex_solver(c, A_ub, b_ub, A_eq, b_eq, bound)
     print(res.x, res.fun, res.success)
 
@@ -175,5 +176,5 @@ def test2():
 
 if __name__=="__main__":
     # test()
-    # test1()
-    test2()
+    test1()
+    # test2()

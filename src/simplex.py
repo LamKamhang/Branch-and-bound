@@ -150,19 +150,19 @@ def pivotAbout(tableau, pivot):
 '''
 def simplex(c, A, b):
    tableau = initialTableau(c, A, b)
-#    print("Initial tableau:")
-#    for row in tableau:
-#       print(row)
-#    print()
+   print("Initial tableau:")
+   for row in tableau:
+      print(row)
+   print()
 
    while canImprove(tableau):
       pivot = findPivotIndex(tableau)
-    #   print("Next pivot index is=%d,%d \n" % pivot)
+      print("Next pivot index is=%d,%d \n" % pivot)
       pivotAbout(tableau, pivot)
-    #   print("Tableau after pivot:")
-    #   for row in tableau:
-    #      print(row)
-    #   print()
+      print("Tableau after pivot:")
+      for row in tableau:
+         print(row)
+      print()
 
    return tableau, primalSolution(tableau), objectiveValue(tableau)
 
@@ -201,17 +201,17 @@ def my_simplex_solver(c, Aub, bub, Aeq, beq, bounds):
     if Aeq is not None and beq is not None:
         equalities, eqThreshold = Aeq, beq
 
-    # print(c, lessThans, ltThreshold,
-    #       equalities, eqThreshold,
-    #       greaterThans, gtThreshold)
+    print(c, lessThans, ltThreshold,
+          equalities, eqThreshold,
+          greaterThans, gtThreshold)
 
     newCost, constraints, threshold = standardForm(c, greaterThans=greaterThans, gtThreshold=gtThreshold, 
         lessThans=lessThans, ltThreshold=ltThreshold, equalities=equalities, eqThreshold=eqThreshold, maximization=True)
 
-    # print(newCost, constraints, threshold)
+    print(newCost, constraints, threshold)
 
     tableau, sol, obj = simplex(newCost, constraints, threshold)
-    # print(sol, obj)
+    print(sol, obj)
 
     res_sol = [0]*len_c
     for row in sol:
