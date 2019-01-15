@@ -30,7 +30,7 @@ public:
 	Bounds()
 	{
 		this->upper = std::numeric_limits<int>::max();
-		this->lower = std::numeric_limits<int>::min();
+		this->lower = 0;
 	}
 
 	bool operator < (const Bounds & b) const {
