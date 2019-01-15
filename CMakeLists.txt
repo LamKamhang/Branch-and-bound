@@ -2,9 +2,11 @@ cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 
 project( branch_bound )
 
+set (CMAKE_CXX_STANDARD 11)
+
 file(GLOB_RECURSE
-    source_files ${PROJECT_SOURCE_DIR}/src/*/*.cpp
-    header_files ${PROJECT_SOURCE_DIR}/src/*/*.h
+    source_files ${PROJECT_SOURCE_DIR}/src/Common/*.cpp ${PROJECT_SOURCE_DIR}/src/BranchBound/*.cpp
+    header_files ${PROJECT_SOURCE_DIR}/src/Common/*.h ${PROJECT_SOURCE_DIR}/src/BranchBound/*.h
 )
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})

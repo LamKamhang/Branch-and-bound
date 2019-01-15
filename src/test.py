@@ -149,7 +149,7 @@ class IPsolver:
 
 def test():
     c, A_ub, b_ub, A_eq, b_eq, bound = lpreader(sys.argv[1])
-    # print(c, A_ub, b_ub, A_eq, b_eq, bound)
+    print(c, A_ub, b_ub, A_eq, b_eq, bound)
     c = [-x for x in c]
     res = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=bound)
     print(res)
@@ -175,6 +175,6 @@ def test2():
 
 
 if __name__=="__main__":
-    # test()
-    test1()
+    test()
+    # test1()
     # test2()

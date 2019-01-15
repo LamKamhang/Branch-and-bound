@@ -112,7 +112,7 @@ public:
 		}
 		c = VectorXd::Zero(freex);
 		for(i=0;i<d.function.size();i++)
-			c(d.function[i].index)=d.function[i].coefficient;
+			c(d.function[i].index-1)=d.function[i].coefficient;
         //for(i=0;i<freex;i++)
         //    printf("%02d ",c(i));
         //putchar('\n');

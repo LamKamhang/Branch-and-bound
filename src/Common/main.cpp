@@ -16,10 +16,11 @@ limitations under the License.
 
 #include <cinttypes>
 #include <iostream>
-#include <bits/stdc++.h>
+// #include "bits/stdc++.h"
 #include <Eigen/Dense>
 #include "lpreader.h"
 #include "SimplexSolver.h"
+#include "../BranchBound/branch_bound.h"
 #include "exception.h"
 
 using namespace std;
@@ -47,8 +48,28 @@ int main(int argc,char* argv[])
 		/*
 			Maximization problem
 		*/
+		VectorXd c(7);
+		c << -3, 4, 0, 0, 0, 0, 0;
+		MatrixXd Ab(5,8);
+		Ab<<4,2,-1,0,0,0,0,8,
+			3,2,0,1,0,0,0,10,
+			-1,3,0,0,1,0,0,1,
+			1,0,0,0,0,-1,0,1,
+			1,0,0,0,0,0,-1,1;
 		
-		SimplexSolver solver1(SIMPLEX_MAXIMIZE, lpr.c, lpr.Ab);
+		SimplexSolver solver1(SIMPLEX_MAXIMIZE, c, Ab);
+		// cout<<"c"<<endl; cout<<lpr.c.transpose()<<endl;
+		// cout<<"Ab"<<endl; cout<<lpr.Ab<<endl;
+
+		// BranchBound bbsolver(SIMPLEX_MAXIMIZE, lpr.c, lpr.Ab, 1E-8);
+		// bbsolver.solve();
+		// if(bbsolver.foundSolution){
+		// 	cout<<"success"<<endl;
+		// 	cout<<bbsolver.optimum<<endl;
+		// 	cout<<bbsolver.solution.transpose()<<endl;
+		// }else{
+		// 	cout<<"failed"<<endl;
+		// }
 
 		if (solver1.hasSolution()) {
 			cout << "The maximum is: " << solver1.getOptimum() << endl;
