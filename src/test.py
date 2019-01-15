@@ -11,7 +11,7 @@ def lpreader(path):
     l = np.array([int(s) for s in f.readline().split()]).reshape(-1, 2)
     c = [0]*avr_num
     for row in l:
-        c[row[1]-1] = row[0]
+        c[row[1]] = row[0]
     
     bound_num = int(f.readline())
     bound = [[0, None]]*avr_num
@@ -19,7 +19,7 @@ def lpreader(path):
         l = [int(s) for s in f.readline().split()]
         l[1] = None if l[1]==2147483647 or l[1]==-2147483648 else l[1]
         l[2] = None if l[2]==2147483647 or l[2]==-2147483648 else l[2]
-        bound[l[0]-1] = [l[1], l[2]]
+        bound[l[0]] = [l[1], l[2]]
 
     eq_num = int(f.readline())
     A_eq, b_eq = [], []
@@ -59,6 +59,9 @@ class IPsolver:
 
         self.cur_sol = np.zeros(self.c.shape)
         self.cur_opt = -np.inf
+
+        self.max_branch_num = 5
+        self.cur_branch_num = 0
 
     def allInteger(self, sol):
         tmp = np.array([abs(x-np.round(x)) for x in list(sol)])
@@ -110,8 +113,9 @@ class IPsolver:
             print(opt, sol)
             print(self.allInteger(sol))
             self.update_opt(sol, opt)
-            if self.needBranch(sol, opt):
+            if self.needBranch(sol, opt) and self.cur_branch_num < self.max_branch_num:
                 index = self.getFirstNotInt(sol)
+                # print("index =", index)
                 to_round = sol[index]
                 len_c = len(self.c)
                 Con1 = np.zeros((len_c, ))
@@ -128,6 +132,8 @@ class IPsolver:
                     A2 = np.vstack([Aub, Con2])
                     B1 = np.hstack([bub, -math.ceil(to_round)])
                     B2 = np.hstack([bub, math.floor(to_round)])
+
+                self.cur_branch_num += 1
                 self.core_solve(c, A1, B1, Aeq, beq, bounds) # right branch
                 self.core_solve(c, A2, B2, Aeq, beq, bounds) # left branch
 
@@ -141,46 +147,9 @@ class IPsolver:
             return False
 
 
-# def integerPro(c, Aub, bub, Aeq, beq, bounds, t=1.0E-3, root=True, result=None):
-#     c = np.array(c)
-#     A = np.array(Aub)
-#     b = np.array(bub)
-#     Aeq = np.array(Aeq)
-#     beq = np.array(beq)
-#     len_c = len(c)
-#     if not root:
-#         res = result
-#     else:
-#         res = linprog(c, A_ub=A, b_ub=b, A_eq=Aeq, b_eq=beq, bounds=bounds)
-#     bestX = res.x
-#     if bestX is np.nan:
-#         return (np.inf, np.full((len_c,), np.nan))
-#     bestVal = c.dot(bestX)
-#     print("bestVal", bestVal)
-#     if all(((x-math.floor(x))<t or (math.ceil(x)-x)<t) for x in bestX):
-#         return (bestVal, bestX)
-#     else:
-#         ind = [i for i, x in enumerate(bestX) if (x-math.floor(x))>t and (math.ceil(x)-x)>t][0]
-#         newCon1 = np.zeros((len_c, ))
-#         newCon2 = np.zeros((len_c, ))
-#         newCon1[ind] = -1.0
-#         newCon2[ind] = 1.0
-#         newA1 = np.vstack([A, newCon1])
-#         newA2 = np.vstack([A, newCon2])
-#         newB1 = np.hstack([b, -math.ceil(bestX[ind])])
-#         newB2 = np.hstack([b, math.floor(bestX[ind])])
-        
-#         r1 = integerPro(c, newA1, newB1, Aeq, beq, bounds)
-#         r2 = integerPro(c, newA2, newB2, Aeq, beq, bounds)
-#         if r1[0] < r2[0]:
-#             return r1
-#         else:
-#             return r2
-
-
 def test():
     c, A_ub, b_ub, A_eq, b_eq, bound = lpreader(sys.argv[1])
-    print(c, A_ub, b_ub, A_eq, b_eq, bound)
+    # print(c, A_ub, b_ub, A_eq, b_eq, bound)
     c = [-x for x in c]
     res = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=bound)
     print(res)
@@ -197,6 +166,11 @@ def test2():
     solver = IPsolver(c, A_ub, b_ub, A_eq, b_eq, bound)
     solver.solve()
     print(solver.solution, solver.optimum)
+    np.savetxt(sys.argv[2], solver.solution, fmt='%d')
+    f = open(sys.argv[2], "a")
+    f.write('\noptimum:'+'\n')
+    f.write(str(int(np.round(solver.optimum)))+'\n')
+    f.close()
 
 
 if __name__=="__main__":
