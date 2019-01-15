@@ -1,5 +1,6 @@
 import math
 from scipy.optimize import linprog
+from simplex import *
 import sys
 import numpy as np
 
@@ -84,8 +85,27 @@ class IPsolver:
     def core_solve(self, c, Aub, bub, Aeq, beq, bounds):
         sol, opt = None, None
         res = linprog(-c, A_ub=Aub, b_ub=bub, A_eq=Aeq, b_eq=beq, bounds=bounds) # for min
+        # if Aub is not None:
+        #     Aub_ = Aub.tolist()
+        #     bub_ = bub.tolist()
+        # else: 
+        #     Aub_, bub_ = [],[]
+        
+        # if Aeq is not None:
+        #     Aeq_ = Aeq.tolist()
+        #     beq_ = beq.tolist()
+        # else: 
+        #     Aeq_, beq_ = [],[]
+        
+        # if bounds is not None:
+        #     bounds_ = bounds.tolist()
+        # else:
+        #     bounds_ = []
+        # c_ = c.tolist()
+        # res = my_simplex_solver(c_, Aub_, bub_, Aeq_, beq_, bounds_)
         if res.success:
             opt = -res.fun # for min
+            # opt = res.fun
             sol = res.x
             print(opt, sol)
             print(self.allInteger(sol))
@@ -159,11 +179,18 @@ class IPsolver:
 
 
 def test():
-    c, A_ub, b_ub, A_eq, b_eq, bound = lpreader("test_case/bland.txt")
+    c, A_ub, b_ub, A_eq, b_eq, bound = lpreader(sys.argv[1])
     print(c, A_ub, b_ub, A_eq, b_eq, bound)
     c = [-x for x in c]
     res = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=bound)
-    print(res.x, res.fun)
+    print(res)
+
+
+def test1():
+    c, A_ub, b_ub, A_eq, b_eq, bound = lpreader(sys.argv[1])
+    res = my_simplex_solver(c, A_ub, b_ub, A_eq, b_eq, bound)
+    print(res.x, res.fun, res.success)
+
 
 def test2():
     c, A_ub, b_ub, A_eq, b_eq, bound = lpreader(sys.argv[1])
@@ -173,4 +200,6 @@ def test2():
 
 
 if __name__=="__main__":
+    # test()
+    # test1()
     test2()
