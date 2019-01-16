@@ -1,0 +1,111 @@
+\section{单纯形法}
+\textbf{c++的版本使用了Eigen/Dense库,编译运行之前请安装}
+运行求解模块之前要求对输入进行部分预处理,使得能够求解线性规划.
+要给出满足条件的矩阵:$C^T$和$AB=[A|B]$,使得约束条件可以表示为
+$$
+\begin{matrix}
+max  &:& C^{T} X \\
+s.t. &:& AX \le B
+\end{matrix}
+$$
+在得到这样的输入后,构造新矩阵T如下所示:
+$$
+\left[
+\begin{matrix}
+	-C^{T} & 0 & 0 \\
+	A & I & B
+\end{matrix}
+\right]
+$$
+
+其中$I$是单位矩阵。
+
+\subsection{源代码分析}
+
+\begin{lstlisting}[language=C++]
+    bool SimplexSolver::simplexAlgorithm(int64_t variableNum) {
+        MatrixXd::Index pivotColumn;
+        int64_t pivotRow;
+        
+        while (true) {
+            /*
+                Find pivot column, check for halt condition
+            */
+            this->tableau.row(0).leftCols(variableNum).minCoeff(&pivotColumn);
+            if (this->tableau(0, pivotColumn) >= 0) {
+                //Found no negative coefficient
+                break;
+            }
+            
+            /*
+                Find pivot row
+            */
+            pivotRow = this->findPivot_min(pivotColumn);
+            if (pivotRow == -1) {
+                //no solution
+                return false;
+            }
+            
+            /*
+                Do pivot operation
+            */
+            this->tableau.row(pivotRow) /= this->tableau(pivotRow, pivotColumn);
+            this->tableau(pivotRow, pivotColumn) = 1;    // For possible precision issues
+            for (int i = 0; i < this->tableau.rows(); i++) {
+                if (i == pivotRow) continue;
+                
+                this->tableau.row(i) -= this->tableau.row(pivotRow) * this->tableau(i, pivotColumn);
+                this->tableau(i, pivotColumn) = 0;    // For possible precision issues
+            }
+        }
+    
+        return true;
+    }
+\end{lstlisting}
+
+然后对T不断进行如下操作:
+\begin{itemize}
+    \item[1] 找出$-C^{T}$系数最小的一列,设为\textbf{j}.
+    \item[2] 当此列的元素大小$>=0$,说明所有检验数的相反数都非负,已找到最优解,结束单纯形法.
+    \item[3] 找矩阵的最小枢轴量,找不到的话说明线性规划无解,结束单纯形法.
+    \item[4] 选择该列,作为加入的新的基变量,根据此基变量所在列选出基中不再作为基变量的变量对应的那一行,设为\textbf{i}(一个选择原则是$\frac{B_{i1}}{A_{ij}}=max_{A_{kj}>0}(\frac{B_{k1}}{A_{kj}}))$
+    \item[5] 以第\textbf{i}行原有的基换出,将第\textbf{j}个变量作为新的基.(消去使得其他行第\textbf{j}列元素为$0$)
+    \item[6] 重复流程1
+\end{itemize}
+
+\paragraph{原理说明: } 在\textbf{A}所在行，恰好每行都有一个元素值为$1$,且其他行在这一列的值为$0$,(就是单位矩阵中的非$0$元素,) 说明新加入的松弛变量正好构成了一组基.
+
+在理解了单位矩阵的意义之后,之后的算法流程就是按着单纯形法来的了。
+
+\subsection{其他函数分析}
+\begin{lstlisting}[language=C++]
+    /**
+    * If the given column has only one coefficient with value 1 (except in topmost row), and all other
+    * coefficients are zero, then returns the row of the non-zero value.
+    * Otherwise return -1.
+    * This method is used in the final step of maximization, when we read
+    * the solution from the tableau.
+    * 
+    * @param int64_t column
+    * @returns int64_t
+    */
+   int64_t SimplexSolver::getPivotRow(int64_t column){}
+\end{lstlisting}
+
+该函数用于找最大检验数所在列,由于矩阵中存储的是每个检验数的相反数,因此找最小值就是找最大检验数。
+
+\begin{lstlisting}[language=C++]
+    /**
+    * If the given column has only one coefficient with value 1 (except in topmost row), and all other
+    * coefficients are zero, then returns the row of the non-zero value.
+    * Otherwise return -1.
+    * This method is used in the final step of maximization, when we read
+    * the solution from the tableau.
+    * 
+    * @param int64_t column
+    * @returns int64_t
+    */
+   int64_t SimplexSolver::findPivot_min(int64_t column);
+\end{lstlisting}
+
+该函数用于找最小枢轴量,由于已经确定了哪个元素会入基,找到一行使得以入基元素消去其他行元素后,整个矩阵最后边的常数列向量依然保证非负.显然,只用找到$\frac{B_{i,1}}{A_{i,column}}=min_{x>0}\{ x|x=\frac{B_{j,1}}{A_{j,column}} \}$这样的一行,再消去其他行就成功让column对应的元素入基,而原本在该行的基就出基了。
