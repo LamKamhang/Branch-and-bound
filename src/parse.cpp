@@ -442,6 +442,18 @@ std::string Data::Print()
 	return output.str();
 }
 
+void print_help(void)
+{
+    printf("Usage: parse.exe [case.lp]\n"
+           "refine the lp file to a supported txt file.\n\n"
+           "\n"
+           "Example: parse.exe case1.lp\n"
+           "         parse.exe sample1.lp\n"
+           "         parse.exe ../test_case/bland.lp\n"
+           "\n"
+           "Please note that the file name cannot contain Chinese!\n"
+           );
+}
 
 int main(int argc, char *argv[]) {
 	Data *data = new Data;
@@ -453,7 +465,7 @@ int main(int argc, char *argv[]) {
 		file_name = argv[1];
 	}
 	else{
-		printf("argc error: input.lp\n");
+		print_help();
 		return -1;
 	}
 
