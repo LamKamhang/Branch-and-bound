@@ -1,6 +1,6 @@
 import math
 from scipy.optimize import linprog
-from simplex import *
+# from simplex import *
 import sys
 import numpy as np
 
@@ -110,8 +110,10 @@ class IPsolver:
             opt = -res.fun # for min
             # opt = res.fun
             sol = res.x
-            print(opt, sol)
-            print(self.allInteger(sol))
+            # print(opt, sol)
+            print("current branch number:", self.cur_branch_num)
+            print("cur_opt:", opt)
+            # print(self.allInteger(sol))
             self.update_opt(sol, opt)
             if self.needBranch(sol, opt) and self.cur_branch_num < self.max_branch_num:
                 index = self.getFirstNotInt(sol)
@@ -147,34 +149,46 @@ class IPsolver:
             return False
 
 
-def test():
-    c, A_ub, b_ub, A_eq, b_eq, bound = lpreader(sys.argv[1])
-    print(c, A_ub, b_ub, A_eq, b_eq, bound)
-    c = [-x for x in c]
-    res = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=bound)
-    print(res)
+# def test():
+#     c, A_ub, b_ub, A_eq, b_eq, bound = lpreader(sys.argv[1])
+#     print(c, A_ub, b_ub, A_eq, b_eq, bound)
+#     c = [-x for x in c]
+#     res = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=bound)
+#     print(res)
 
 
-def test1():
-    c, A_ub, b_ub, A_eq, b_eq, bound = lpreader(sys.argv[1])
-    print(c, A_ub, b_ub, A_eq, b_eq, bound)
-    res = my_simplex_solver(c, A_ub, b_ub, A_eq, b_eq, bound)
-    print(res.x, res.fun, res.success)
+# def test1():
+#     c, A_ub, b_ub, A_eq, b_eq, bound = lpreader(sys.argv[1])
+#     print(c, A_ub, b_ub, A_eq, b_eq, bound)
+#     res = my_simplex_solver(c, A_ub, b_ub, A_eq, b_eq, bound)
+#     print(res.x, res.fun, res.success)
 
 
 def test2():
+    if len(sys.argv)<=2:
+        print("arg: input.txt output.txt")
+        return
     c, A_ub, b_ub, A_eq, b_eq, bound = lpreader(sys.argv[1])
+    from time import clock
+    start=clock()
     solver = IPsolver(c, A_ub, b_ub, A_eq, b_eq, bound)
     solver.solve()
-    print(solver.solution, solver.optimum)
+    finish=clock()
+    print("result:")
+    print("solution:")
+    print(solver.solution)
+    print("optimum:")
+    print(solver.optimum)
+    print("used %.2e seconds"%((finish-start)/1000000))
     np.savetxt(sys.argv[2], solver.solution, fmt='%d')
     f = open(sys.argv[2], "a")
     f.write('\noptimum:'+'\n')
     f.write(str(int(np.round(solver.optimum)))+'\n')
     f.close()
+    print("saved to", sys.argv[2])
 
 
 if __name__=="__main__":
-    test()
+    # test()
     # test1()
-    # test2()
+    test2()
