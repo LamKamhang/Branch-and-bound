@@ -1,6 +1,14 @@
 # Branch-and-bound
 A simple program for solving integer programming using the branch and bound method.
 
+## files description
+```
+bin       : executable files
+solution  : our solutions for some cases
+src       : our source codes
+test_case : test cases
+```
+
 ## how to compile
 required: Eigen3
 ```
