@@ -1,1 +1,54 @@
 \chapter{测试结果}
+
+我们的测试数据除了使用助教在\url{http://www.cs.zju.edu.cn/algo/teaching/2018/zgc\_2018.html}提供的中等规模及大规模测试外，另外根据需求构造了几组测试样例，我们称之为小型测试样例。以此来检验我们程序的运行情况。下表中详细描述了我们的测试样例和测试情况：
+
+
+\begin{table}[h]
+	\caption{小型测试样例}
+	\centering
+	\begin{tabular}{|l|l|l|}
+		\hline
+		测试样例 & 测试目的 & 测试结果 \\
+		\hline
+		sample1 & 测试极小化优化问题 & pass \\
+		\hline
+		sample2 & 所有约束都是小于等于的极大化问题 & pass \\
+		\hline
+		sample3 & 常规例子 & pass \\
+		\hline
+		sample4 & 约束包含大于等于，小于等于及等于 & pass \\
+		\hline
+		sample5 & 测试无解的样例 & pass \\
+		\hline
+		sample6 & 有无穷解的样例 & pass \\
+		\hline
+		sample7 & 测试bland法则 & pass \\
+		\hline
+	\end{tabular}
+\end{table}
+
+经过了小型的测试以后，我们对助教提供的例子进行测试。下面是测试结果：
+
+\begin{table}[h]
+	\caption{大中规模测试}
+	\centering
+	\begin{tabular}{|l|l|l|}
+		\hline
+		测试样例 & 测试目的 & 测试结果 \\
+		\hline
+		case1 & 大规模测试1 & pending \\
+		\hline
+		case2 & 大规模测试2 & pending \\
+		\hline
+		case3 & 中等规模测试1 & pass \\
+		\hline
+		case4 & 中等规模测试2 & pass \\
+		\hline
+		case5 & 中等规模测试3 & pass \\
+		\hline
+	\end{tabular}
+\end{table}
+
+
+
+非常不幸的是，我们的程序无法接受大规模的测试，这可能归咎于我们的优化上没有做好，无法承受三千个变量的压力。这在后面分析的章节中，会稍微详细一点描述这个情况。
