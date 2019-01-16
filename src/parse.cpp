@@ -70,6 +70,7 @@ private:
 	std::vector< std::pair<size_t, Bounds> > bounds;
 	std::vector<size_t> indices;
 	std::vector<Variable> function;
+	bool isMaxProblem;
 
 	//static std::string Trim(const std::string &s);
 	static std::vector<std::string> Split(const std::string & input, char delim);
@@ -274,8 +275,10 @@ void Data::Parse(const std::string & input_)
 					this->indices.push_back(index);
 				}
 			} else if (tokens[0].size() >= 4 && tokens[0].substr(0, 4) == "max:") {
+				isMaxProblem = true;
 				function = Data::ParseVariables(vector<string>(tokens.begin() + 1, tokens.end()));
 			} else if (tokens[0].size() >= 4 && tokens[0].substr(0, 4) == "min:") {
+				isMaxProblem = false;
 				function = Data::ParseVariables(vector<string>(tokens.begin() + 1, tokens.end()), true);
 			} else {
 				if (tokens[0].back() == ':') {
@@ -404,7 +407,8 @@ std::string Data::Print()
 				break;
 		}
 	}
-
+	
+	output << isMaxProblem << std::endl;
 	output << indexSize << std::endl;
 
 	for (const auto & var : function){

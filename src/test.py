@@ -7,6 +7,7 @@ import numpy as np
 
 def lpreader(path):
     f = open(path)
+    is_max_problem = int(f.readline())
     avr_num = int(f.readline())
     l = np.array([int(s) for s in f.readline().split()]).reshape(-1, 2)
     c = [0]*avr_num
@@ -40,11 +41,12 @@ def lpreader(path):
         A_ub, b_ub = None, None
     
     f.close()
-    return c, A_ub, b_ub, A_eq, b_eq, bound
+    return is_max_problem, c, A_ub, b_ub, A_eq, b_eq, bound
 
 
 class IPsolver:
-    def __init__(self, c, Aub, bub, Aeq, beq, bounds, tol=1.0E-8):
+    def __init__(self, is_max_problem, c, Aub, bub, Aeq, beq, bounds, tol=1.0E-8):
+        self.is_max_problem = is_max_problem
         self.c = np.array(c)
         self.Aub = np.array(Aub) if Aub else None
         self.bub = np.array(bub) if bub else None
@@ -143,7 +145,8 @@ class IPsolver:
         self.core_solve(self.c, self.Aub, self.bub, self.Aeq, self.beq, self.bounds)
         if self.isFoundSolution:
             self.solution = np.array([int(np.round(x)) for x in list(self.cur_sol)])
-            self.optimum  = self.cur_opt
+            if self.is_max_problem: self.optimum  = self.cur_opt
+            else: self.optimum  = -self.cur_opt
             return True
         else:
             return False
@@ -168,18 +171,18 @@ def test2():
     if len(sys.argv)<=2:
         print("arg: input.txt output.txt")
         return
-    c, A_ub, b_ub, A_eq, b_eq, bound = lpreader(sys.argv[1])
-    from time import clock
-    start=clock()
-    solver = IPsolver(c, A_ub, b_ub, A_eq, b_eq, bound)
+    is_max_problem, c, A_ub, b_ub, A_eq, b_eq, bound = lpreader(sys.argv[1])
+    import time
+    time_start=time.time()
+    solver = IPsolver(is_max_problem, c, A_ub, b_ub, A_eq, b_eq, bound)
     solver.solve()
-    finish=clock()
+    time_end=time.time()
     print("result:")
     print("solution:")
     print(solver.solution)
     print("optimum:")
     print(solver.optimum)
-    print("used %.2e seconds"%((finish-start)/1000000))
+    print('time cost',time_end-time_start,'s')
     np.savetxt(sys.argv[2], solver.solution, fmt='%d')
     f = open(sys.argv[2], "a")
     f.write('\noptimum:'+'\n')
