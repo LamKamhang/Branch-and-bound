@@ -449,6 +449,7 @@ int main(int argc, char *argv[]) {
 		file_name = argv[1];
 	}
 	else{
+		printf("argc error: input.lp\n");
 		return -1;
 	}
 
