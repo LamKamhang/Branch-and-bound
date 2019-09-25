@@ -1,0 +1,23 @@
+\begin{thebibliography}{1}
+
+\bibitem{EXP}
+Victor Klee and George~J. Minty.
+\newblock Worst case for simplex method.
+\newblock \url{http://mathscinet.ams.org/mathscinet-getitem?mr=0332165}, 1972.
+\newblock Retrieved Jan 13rd, 2018.
+
+\bibitem{Fourier}
+Wikipedia.
+\newblock Fourier–motzkin elimination.
+\newblock
+  \url{https://en.wikipedia.org/wiki/Fourier%E2%80%93Motzkin_elimination},
+  2018.
+\newblock Retrieved Jan 13rd, 2018.
+
+\bibitem{ILP}
+Wikipedia.
+\newblock Integer programming.
+\newblock \url{https://en.wikipedia.org/wiki/Integer_programming}, 2018.
+\newblock Retrieved Jan 13rd, 2018.
+
+\end{thebibliography}
