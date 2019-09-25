@@ -1,19 +1,3 @@
-/*
-Copyright 2012-2018 Tamas Bolner
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 #include <cinttypes>
 #include <Eigen/Dense>
 #include "SimplexSolver.h"
@@ -60,6 +44,7 @@ SimplexSolver::SimplexSolver(int mode, const VectorXd &objectiveFunction, const 
             throw FException("SimplexSolver: One of the coefficients of the objective function is zero.");
         }
     }
+    */
 
     temp = constraints.cols() - 1;
     for (int i = 0; i < constraints.rows(); i++) {
@@ -67,7 +52,6 @@ SimplexSolver::SimplexSolver(int mode, const VectorXd &objectiveFunction, const 
             throw FException("SimplexSolver: All righthand-side coefficients of the constraint matrix must be non-negative.");
         }
     }
-    */
     
     /*
         Build tableau

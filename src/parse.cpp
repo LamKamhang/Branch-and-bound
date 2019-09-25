@@ -58,7 +58,7 @@ public:
 	Type type;
 	std::vector<Variable> variables;
 	int constant;
-	Condition(Type type, const std::vector<Variable> & variables, int constant):
+	Condition(Type type, const std::vector<Variable> & variables, int constant) :
 		type(type), variables(variables), constant(constant)
 	{
 	}
@@ -70,6 +70,7 @@ private:
 	std::vector< std::pair<size_t, Bounds> > bounds;
 	std::vector<size_t> indices;
 	std::vector<Variable> function;
+	bool isMaxProblem;
 
 	//static std::string Trim(const std::string &s);
 	static std::vector<std::string> Split(const std::string & input, char delim);
@@ -131,14 +132,16 @@ std::vector<Variable> Data::ParseVariables(const std::vector<std::string> & toke
 			// sign
 			if (sm[1] == "+" || sm[1] == "") {
 				sign = 1;
-			} else if (sm[1] == "-") {
+			}
+			else if (sm[1] == "-") {
 				sign = -1;
-			} else {
+			}
+			else {
 				parseFail = true;
 			}
 
 			// check whether opposite
-			if (opposite){
+			if (opposite) {
 				sign *= -1;
 			}
 
@@ -146,20 +149,24 @@ std::vector<Variable> Data::ParseVariables(const std::vector<std::string> & toke
 			try {
 				if (sm[2] == "") {
 					coefficient = 1;
-				} else {
+				}
+				else {
 					coefficient = std::stoi(sm[2]);
 				}
-			} catch (std::exception e) {
+			}
+			catch (std::exception e) {
 				parseFail = true;
 			}
 
 			// index
 			try {
 				index = std::stoi(sm[3]);
-			} catch (std::exception e) {
+			}
+			catch (std::exception e) {
 				parseFail = true;
 			}
-		} else {
+		}
+		else {
 			parseFail = true;
 		}
 
@@ -201,18 +208,22 @@ Condition Data::ParseExpression(const std::vector<std::string> & tokens_)
 	// =, <=, >=
 	if (operatorString == "=") {
 		conditionType = Condition::Type::eq;
-	} else if (operatorString == "<=") {
+	}
+	else if (operatorString == "<=") {
 		conditionType = Condition::Type::leq;
-	} else if (operatorString == ">=") {
+	}
+	else if (operatorString == ">=") {
 		conditionType = Condition::Type::geq;
-	} else {
+	}
+	else {
 		throw new ParseException("'" + operatorString + "' is not a valid operator");
 	}
 
 	// constant
 	try {
 		constant = std::stoi(constantString);
-	} catch (std::exception e) {
+	}
+	catch (std::exception e) {
 		throw new ParseException("'" + constantString + "' is not a valid integer");
 	}
 
@@ -262,8 +273,8 @@ void Data::Parse(const std::string & input_)
 	input = std::regex_replace(input, regex("^\\s*$"), ""); // remove blank
 	input = std::regex_replace(input, regex("[\n\r]"), " "); // remove line
 
-	stringstream buffer(input);
-	for (string line; std::getline(buffer, line, ';'); ) {
+	vector<string> lines = Data::Split(input, ';');;
+	for (const string line: lines) {
 		vector<string> tokens = Data::Split(line, ' ');
 		if (!tokens.empty()) {
 			if (tokens[0].size() >= 3 && tokens[0].substr(0, 3) == "int") {
@@ -273,11 +284,16 @@ void Data::Parse(const std::string & input_)
 					int index = ParseVariable(var);
 					this->indices.push_back(index);
 				}
-			} else if (tokens[0].size() >= 4 && tokens[0].substr(0, 4) == "max:") {
+			}
+			else if (tokens[0].size() >= 4 && tokens[0].substr(0, 4) == "max:") {
+				isMaxProblem = true;
 				function = Data::ParseVariables(vector<string>(tokens.begin() + 1, tokens.end()));
-			} else if (tokens[0].size() >= 4 && tokens[0].substr(0, 4) == "min:") {
+			}
+			else if (tokens[0].size() >= 4 && tokens[0].substr(0, 4) == "min:") {
+				isMaxProblem = false;
 				function = Data::ParseVariables(vector<string>(tokens.begin() + 1, tokens.end()), true);
-			} else {
+			}
+			else {
 				if (tokens[0].back() == ':') {
 					tokens.erase(tokens.begin());
 				}
@@ -287,61 +303,65 @@ void Data::Parse(const std::string & input_)
 					Bounds bounds;
 
 					/** coefficient * variable [= // <= // >=] constant
-					 * if operator is =
-					 * 		upper = lower = constant / coefficient
-					 * if operator is >=
-					 * 		if sign is +
-					 * 			upper = +infinity
-					 * 			lower = ceil(constant / coefficient)
-					 * 		if sign is -
-					 * 			upper = floor(constant / coefficient)
-					 * 			lower = -infinity
-					 * if operator is <=
-					 * 		if sign is +
-					 * 			upper = floor(constant / coefficient)
-					 * 			lower = -infinity
-					 * 		if sign is -
-					 * 			lower = ceil(constant / coefficient)
-					 * 			upper = +infinity
-					 */
+					* if operator is =
+					* 		upper = lower = constant / coefficient
+					* if operator is >=
+					* 		if sign is +
+					* 			upper = +infinity
+					* 			lower = ceil(constant / coefficient)
+					* 		if sign is -
+					* 			upper = floor(constant / coefficient)
+					* 			lower = -infinity
+					* if operator is <=
+					* 		if sign is +
+					* 			upper = floor(constant / coefficient)
+					* 			lower = -infinity
+					* 		if sign is -
+					* 			lower = ceil(constant / coefficient)
+					* 			upper = +infinity
+					*/
 					int ceil_ = ceil(condition.constant*1.0 / variable.coefficient);
 					int floor_ = floor(condition.constant*1.0 / variable.coefficient);
 
-					switch (condition.type){
-						case Condition::Type::eq:
-							if (ceil_ == floor_) {
-								bounds.upper = bounds.lower = ceil_;
-							} else {
-								// if ceil_ is not equal to floor_
-								// the variable should be unsolvable.
-								// simply let upper < lower
-								bounds.upper = floor_;
-								bounds.lower = ceil_;
-							}
-							break;
+					switch (condition.type) {
+					case Condition::Type::eq:
+						if (ceil_ == floor_) {
+							bounds.upper = bounds.lower = ceil_;
+						}
+						else {
+							// if ceil_ is not equal to floor_
+							// the variable should be unsolvable.
+							// simply let upper < lower
+							bounds.upper = floor_;
+							bounds.lower = ceil_;
+						}
+						break;
 
-						case Condition::Type::leq:
-							if (variable.coefficient < 0) {
-								bounds.lower = ceil_;
-							} else {
-								bounds.upper = floor_;
-							}
-							break;
+					case Condition::Type::leq:
+						if (variable.coefficient < 0) {
+							bounds.lower = ceil_;
+						}
+						else {
+							bounds.upper = floor_;
+						}
+						break;
 
-						case Condition::Type::geq:
-							if (variable.coefficient < 0) {
-								bounds.upper = floor_;								
-							} else {
-								bounds.lower = ceil_;
-							}
-							break;
+					case Condition::Type::geq:
+						if (variable.coefficient < 0) {
+							bounds.upper = floor_;
+						}
+						else {
+							bounds.lower = ceil_;
+						}
+						break;
 
-						default:
-							break;
+					default:
+						break;
 					}
 
 					this->bounds.push_back(std::pair<size_t, Bounds>(variable.index, bounds));
-				} else {
+				}
+				else {
 					this->conditions.push_back(condition);
 				}
 			}
@@ -385,33 +405,34 @@ std::string Data::Print()
 		vec.push_back(condition.constant);
 
 		switch (condition.type) {
-			case Condition::Type::eq:
-				eq.push_back(vec);
-				break;
+		case Condition::Type::eq:
+			eq.push_back(vec);
+			break;
 
-			case Condition::Type::leq:
-				leq.push_back(vec);
-				break;
+		case Condition::Type::leq:
+			leq.push_back(vec);
+			break;
 
-			case Condition::Type::geq:
-				for (int &e : vec) {
-					e *= -1;
-				}
-				leq.push_back(vec);
-				break;
+		case Condition::Type::geq:
+			for (int &e : vec) {
+				e *= -1;
+			}
+			leq.push_back(vec);
+			break;
 
-			default:
-				break;
+		default:
+			break;
 		}
 	}
 
+	output << isMaxProblem << std::endl;
 	output << indexSize << std::endl;
 
-	for (const auto & var : function){
+	for (const auto & var : function) {
 		output << var.coefficient << " " << mapIndex[var.index] << " ";
 	}
 	output << std::endl;
-	
+
 	output << this->bounds.size() << std::endl;
 	for (const auto p : this->bounds) {
 		size_t index = p.first;
@@ -438,17 +459,28 @@ std::string Data::Print()
 	return output.str();
 }
 
+void print_help(void)
+{
+	printf("Usage: parse.exe [case.lp]\n"
+		"refine the lp file to a supported txt file.\n\n"
+		"\n"
+		"Example: parse.exe case1.lp\n"
+		"         parse.exe sample1.lp\n"
+		"         parse.exe ../test_case/bland.lp\n"
+		"\n"
+		"Please note that the file name cannot contain Chinese!\n"
+	);
+}
 
 int main(int argc, char *argv[]) {
 	Data *data = new Data;
-	std::fstream fin;
-	//fin.open("case3.lp", std::fstream::in);
 
 	std::string file_name;
-	if (argc == 2){
+	if (argc == 2) {
 		file_name = argv[1];
 	}
-	else{
+	else {
+		print_help();
 		return -1;
 	}
 
@@ -458,7 +490,6 @@ int main(int argc, char *argv[]) {
 	std::string buffer(size, ' ');
 	t.seekg(0);
 	t.read(&buffer[0], size);
-	fin.close();
 
 	try {
 		data->Parse(buffer);
